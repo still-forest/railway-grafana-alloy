@@ -1,12 +1,16 @@
-// These variables must be defined in Railway
 local "env" {
   secrets = {
     GRAFANA_CLOUD_METRICS_URL = "${env("GRAFANA_CLOUD_METRICS_URL")}"
+    GRAFANA_CLOUD_LOGS_URL    = "${env("GRAFANA_CLOUD_LOGS_URL")}"
+    GRAFANA_CLOUD_TRACES_URL  = "${env("GRAFANA_CLOUD_TRACES_URL")}"
     GRAFANA_CLOUD_USERNAME    = "${env("GRAFANA_CLOUD_USERNAME")}"
     GRAFANA_CLOUD_API_KEY     = "${env("GRAFANA_CLOUD_API_KEY")}"
   }
 }
 
+//////////
+// METRICS
+//////////
 prometheus.scrape "self" {
   targets = [{ __address__ = "localhost:9090" }]
 }
@@ -17,6 +21,69 @@ prometheus.remote_write "to_grafana_cloud" {
     basic_auth {
       username = local.env.secrets.GRAFANA_CLOUD_USERNAME
       password = local.env.secrets.GRAFANA_CLOUD_API_KEY
+    }
+  }
+}
+
+///////
+// LOGS
+///////
+local.file_match "log_files" {
+  path_targets = [
+    {
+      path = "/var/log/app.log"
+      labels = {
+        job = "my_app"
+      }
+    }
+  ]
+}
+
+loki.process "parse_logs" {
+  forward_to = [loki.write.to_grafana_cloud.receiver]
+  stage.json {}
+}
+
+loki.write "to_grafana_cloud" {
+  endpoint {
+    url = local.env.secrets.GRAFANA_CLOUD_LOGS_URL
+    basic_auth {
+      username = local.env.secrets.GRAFANA_CLOUD_USERNAME
+      password = local.env.secrets.GRAFANA_CLOUD_API_KEY
+    }
+  }
+}
+
+//////////
+// TRACES
+//////////
+otel.receiver.otlp "receiver" {
+  protocols = {
+    grpc {}
+    http {}
+  }
+}
+
+otel.processor.batch "batch" {
+  send_batch_max_size = 1024
+  timeout = "5s"
+}
+
+otel.exporter.otlp "to_grafana_cloud" {
+  client {
+    endpoint = local.env.secrets.GRAFANA_CLOUD_TRACES_URL
+    headers = {
+      "Authorization" = "Basic ${base64("${local.env.secrets.GRAFANA_CLOUD_USERNAME}:${local.env.secrets.GRAFANA_CLOUD_API_KEY}")}"
+    }
+  }
+}
+
+otel.service "default" {
+  pipelines = {
+    traces = {
+      receivers = [otel.receiver.otlp.receiver]
+      processors = [otel.processor.batch.batch]
+      exporters = [otel.exporter.otlp.to_grafana_cloud]
     }
   }
 }
