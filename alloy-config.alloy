@@ -1,0 +1,22 @@
+// These variables must be defined in Railway
+local "env" {
+  secrets = {
+    GRAFANA_CLOUD_METRICS_URL = "${env("GRAFANA_CLOUD_METRICS_URL")}"
+    GRAFANA_CLOUD_USERNAME    = "${env("GRAFANA_CLOUD_USERNAME")}"
+    GRAFANA_CLOUD_API_KEY     = "${env("GRAFANA_CLOUD_API_KEY")}"
+  }
+}
+
+prometheus.scrape "self" {
+  targets = [{ __address__ = "localhost:9090" }]
+}
+
+prometheus.remote_write "to_grafana_cloud" {
+  endpoint {
+    url = local.env.secrets.GRAFANA_CLOUD_METRICS_URL
+    basic_auth {
+      username = local.env.secrets.GRAFANA_CLOUD_USERNAME
+      password = local.env.secrets.GRAFANA_CLOUD_API_KEY
+    }
+  }
+}
