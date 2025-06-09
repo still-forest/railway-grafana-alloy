@@ -1,3 +1,4 @@
+import os
 import httpx
 import json
 import time
@@ -50,7 +51,7 @@ class AlloyLogger:
 
 
 # Initialize logger
-logger = AlloyLogger("http://grafana-alloy-service.railway.internal:3100")
+logger = AlloyLogger(f"{os.getenv('GRAFANA_ALLOY_HOST')}:3100")
 
 
 # Metrics endpoint for Alloy to scrape (optional)
