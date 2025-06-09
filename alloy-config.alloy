@@ -1,22 +1,46 @@
-// These variables must be defined in Railway
-local "env" {
-  secrets = {
-    GRAFANA_CLOUD_METRICS_URL = "${env("GRAFANA_CLOUD_METRICS_URL")}"
-    GRAFANA_CLOUD_USERNAME    = "${env("GRAFANA_CLOUD_USERNAME")}"
-    GRAFANA_CLOUD_API_KEY     = "${env("GRAFANA_CLOUD_API_KEY")}"
+// HTTP server for receiving logs and metrics
+prometheus.receive_http "metrics_receiver" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port = 9090
   }
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
-prometheus.scrape "self" {
-  targets = [{ __address__ = "localhost:9090" }]
+loki.receive_http "logs_receiver" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port = 3100
+  }
+  forward_to = [loki.write.grafana_cloud.receiver]
 }
 
-prometheus.remote_write "to_grafana_cloud" {
+// Send metrics to Grafana Cloud
+prometheus.remote_write "grafana_cloud" {
   endpoint {
-    url = local.env.secrets.GRAFANA_CLOUD_METRICS_URL
+    url = env("GRAFANA_PROMETHEUS_URL") + "/api/prom/push"
     basic_auth {
-      username = local.env.secrets.GRAFANA_CLOUD_USERNAME
-      password = local.env.secrets.GRAFANA_CLOUD_API_KEY
+      username = env("GRAFANA_PROMETHEUS_USER")
+      password = env("GRAFANA_PROMETHEUS_PASSWORD")
     }
   }
+}
+
+// Send logs to Grafana Cloud
+loki.write "grafana_cloud" {
+  endpoint {
+    url = env("LOKI_HOST") + "/loki/api/v1/push"
+    basic_auth {
+      username = env("LOKI_USERNAME")
+      password = env("LOKI_API_KEY")
+    }
+  }
+}
+
+// Optional: Collect system metrics from Alloy itself
+prometheus.exporter.unix "system" {}
+prometheus.scrape "system_metrics" {
+  targets = prometheus.exporter.unix.system.targets
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+  scrape_interval = "30s"
 }
