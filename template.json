@@ -1,0 +1,89 @@
+{
+  "name": "Express + Grafana Cloud Observability",
+  "description": "Production-ready Express.js app with unified observability using Grafana Alloy for metrics and logs",
+  "image": "https://railway.app/brand/logo-light.png",
+  "tags": [
+    "express",
+    "typescript",
+    "grafana",
+    "observability",
+    "monitoring",
+    "prometheus",
+    "loki",
+    "alloy"
+  ],
+  "repository": "https://github.com/your-username/express-grafana-template",
+  "template": {
+    "name": "Express + Grafana Observability",
+    "description": "Express.js with Grafana Alloy for unified observability",
+    "services": [
+      {
+        "name": "express-app",
+        "source": {
+          "type": "image",
+          "image": "node:18-alpine"
+        },
+        "build": {
+          "builder": "DOCKERFILE"
+        },
+        "healthcheck": {
+          "path": "/health",
+          "timeout": 300
+        },
+        "env": {
+          "NODE_ENV": {
+            "description": "Node.js environment",
+            "default": "production"
+          },
+          "PORT": {
+            "description": "Application port",
+            "default": "3000"
+          },
+          "GRAFANA_PROMETHEUS_URL": {
+            "description": "Grafana Cloud Prometheus URL (e.g., https://prometheus-prod-XX-XX-X.grafana.net)",
+            "required": true
+          },
+          "GRAFANA_PROMETHEUS_USER": {
+            "description": "Grafana Cloud instance ID (usually a number)",
+            "required": true
+          },
+          "GRAFANA_PROMETHEUS_PASSWORD": {
+            "description": "Grafana Cloud API key (starts with glc_)",
+            "required": true
+          },
+          "LOKI_HOST": {
+            "description": "Grafana Cloud Loki URL (e.g., https://logs-prod-XX-XX-X.grafana.net)",
+            "required": true
+          },
+          "LOKI_USERNAME": {
+            "description": "Grafana Cloud instance ID (same as Prometheus user)",
+            "required": true
+          },
+          "LOKI_API_KEY": {
+            "description": "Grafana Cloud API key (same as Prometheus password)",
+            "required": true
+          }
+        }
+      }
+    ]
+  },
+  "features": [
+    "Express.js with TypeScript",
+    "Grafana Alloy for unified observability",
+    "Prometheus metrics collection",
+    "Structured JSON logging to Loki",
+    "System and application metrics",
+    "Health checks and error handling",
+    "PM2 process management",
+    "Security middleware (Helmet, CORS)",
+    "Production-ready configuration"
+  ],
+  "categories": ["backend", "observability", "monitoring", "typescript"],
+  "author": {
+    "name": "Your Name",
+    "email": "your-email@example.com",
+    "url": "https://github.com/your-username"
+  },
+  "license": "MIT",
+  "version": "1.0.0"
+}
