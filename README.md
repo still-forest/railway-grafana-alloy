@@ -417,3 +417,42 @@ tsconfig.json - TypeScript configuration
 railway.toml - Railway-specific settings
 .gitignore - Proper exclusions
 template.json - Railway template manifest
+
+🚀 Key Features
+
+Unified Observability: Single Grafana Alloy instance collecting both metrics and logs
+Railway Optimized: Uses PM2 to run both Express app and Alloy in one container
+Cost Effective: Stays within Hobby plan limits for small apps
+Production Ready: Security middleware, error handling, graceful shutdown
+Extensible: Easy to add custom metrics and logging
+
+📊 What Gets Monitored
+Metrics → Grafana Cloud Prometheus:
+
+HTTP requests (duration, count, status codes)
+System metrics (CPU, memory, disk)
+Node.js metrics (GC, event loop)
+Custom business metrics
+
+Logs → Grafana Cloud Loki:
+
+Structured JSON logs with automatic parsing
+Request/response logging
+Error tracking with stack traces
+Custom application events
+
+🛠 To Use This Template
+
+Create the template repository with all these files
+Publish to Railway as a template
+Users deploy with one click
+Configure Grafana Cloud environment variables
+Start monitoring immediately
+
+💰 Railway Cost Impact
+For typical usage:
+
+Single container with both app + Alloy
+Minimal resource overhead from Alloy
+Should stay under $5/month on Hobby plan
+Scales cost-effectively as you add more apps
