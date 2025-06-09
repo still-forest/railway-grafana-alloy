@@ -1,22 +1,127 @@
-// These variables must be defined in Railway
-local "env" {
-  secrets = {
-    GRAFANA_CLOUD_METRICS_URL = "${env("GRAFANA_CLOUD_METRICS_URL")}"
-    GRAFANA_CLOUD_USERNAME    = "${env("GRAFANA_CLOUD_USERNAME")}"
-    GRAFANA_CLOUD_API_KEY     = "${env("GRAFANA_CLOUD_API_KEY")}"
+// Grafana Alloy configuration for unified observability
+// Collects both metrics and logs and sends to Grafana Cloud
+
+//==============================================================================
+// METRICS COLLECTION
+//==============================================================================
+
+// Scrape application metrics from Express /metrics endpoint
+prometheus.scrape "app_metrics" {
+  targets = [{"__address__" = "localhost:3000"}]
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+  scrape_interval = "30s"
+  metrics_path = "/metrics"
+  
+  // Add labels to all scraped metrics
+  clustering {
+    enabled = false
   }
 }
 
-prometheus.scrape "self" {
-  targets = [{ __address__ = "localhost:9090" }]
+// Optional: Collect system metrics (CPU, memory, disk, network)
+prometheus.exporter.unix "system" {
+  // Enable all system metrics
+  include_exporter_metrics = true
+  disable_collectors = []
 }
 
-prometheus.remote_write "to_grafana_cloud" {
+prometheus.scrape "system_metrics" {
+  targets = prometheus.exporter.unix.system.targets
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+  scrape_interval = "30s"
+  job_name = "system"
+}
+
+// Send metrics to Grafana Cloud Prometheus
+prometheus.remote_write "grafana_cloud" {
   endpoint {
-    url = local.env.secrets.GRAFANA_CLOUD_METRICS_URL
+    url = env("GRAFANA_PROMETHEUS_URL") + "/api/prom/push"
     basic_auth {
-      username = local.env.secrets.GRAFANA_CLOUD_USERNAME
-      password = local.env.secrets.GRAFANA_CLOUD_API_KEY
+      username = env("GRAFANA_PROMETHEUS_USER")
+      password = env("GRAFANA_PROMETHEUS_PASSWORD")
     }
+    
+    // Optional: Configure batching for better performance
+    queue_config {
+      capacity = 10000
+      max_shards = 200
+      min_shards = 1
+      max_samples_per_send = 2000
+      batch_send_deadline = "5s"
+    }
+  }
+  
+  // Add global labels to all metrics
+  external_labels = {
+    environment = env("NODE_ENV"),
+    service = env("RAILWAY_SERVICE_NAME),
+    instance = env("RAILWAY_INSTANCE_NAME"),
+  }
+}
+
+//==============================================================================
+// LOGS COLLECTION  
+//==============================================================================
+
+// Read logs from application log files
+loki.source.file "app_logs" {
+  targets = [
+    {
+      __path__ = "/app/logsq/*.log",
+      app = env("RAILWAY_SERVICE_NAME),
+      environment = env("NODE_ENV"),
+      service = env("RAILWAY_SERVICE_NAME),
+      instance = env("RAILWAY_SERVICE_NAME"),
+    },
+  ]
+  forward_to = [loki.process.json_parser.receiver]
+}
+
+// Parse JSON logs and extract labels
+loki.process "json_parser" {
+  stage.json {
+    expressions = {
+      level = "level",
+      timestamp = "timestamp", 
+      message = "message",
+      service = "service",
+      domain = "domain",
+    }
+  }
+  
+  // Extract level as a label
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+  
+  // Use timestamp from log entry if available
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339"
+  }
+  
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+// Send logs to Grafana Cloud Loki
+loki.write "grafana_cloud" {
+  endpoint {
+    url = env("LOKI_HOST") + "/loki/api/v1/push"
+    basic_auth {
+      username = env("LOKI_USERNAME")
+      password = env("LOKI_API_KEY")
+    }
+    
+    // Optional: Configure batching
+    batch_wait = "1s"
+    batch_size = 1024000  // 1MB
+  }
+  
+  // Add global labels to all logs
+  external_labels = {
+    environment = env("NODE_ENV"),
+    railway_service = env("RAILWAY_SERVICE_NAME"),
   }
 }
