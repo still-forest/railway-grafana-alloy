@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 interface LogEntry {
 	timestamp: string;
@@ -8,7 +8,7 @@ interface LogEntry {
 	service: string;
 	domain: string;
 	environment: string;
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 class FileLogger {
@@ -40,7 +40,7 @@ class FileLogger {
 			...meta,
 		};
 
-		const logLine = JSON.stringify(entry) + "\n";
+		const logLine = `${JSON.stringify(entry)}\n`;
 
 		// Always log to console for Railway logs
 		console.log(logLine.trim());
@@ -54,19 +54,19 @@ class FileLogger {
 		}
 	}
 
-	info(message: string, meta?: Record<string, any>) {
+	info(message: string, meta?: Record<string, unknown>) {
 		this.writeLog("info", message, meta);
 	}
 
-	warn(message: string, meta?: Record<string, any>) {
+	warn(message: string, meta?: Record<string, unknown>) {
 		this.writeLog("warn", message, meta);
 	}
 
-	error(message: string, meta?: Record<string, any>) {
+	error(message: string, meta?: Record<string, unknown>) {
 		this.writeLog("error", message, meta);
 	}
 
-	debug(message: string, meta?: Record<string, any>) {
+	debug(message: string, meta?: Record<string, unknown>) {
 		if (process.env.NODE_ENV === "development") {
 			this.writeLog("debug", message, meta);
 		}
