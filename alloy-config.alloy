@@ -7,6 +7,14 @@ prometheus.remote_write "grafana_cloud" {
       password = env("GRAFANA_PROMETHEUS_PASSWORD")
     }
   }
+
+  // Optional: rate limiting
+  queue_config {
+    capacity = 10000
+    max_shards = coalesce(env(GRAFANA_PROMETHEUS_MAX_SHARDS), 50)
+    min_shards = 1
+    max_samples_per_send = coalesce(env(GRAFANA_PROMETHEUS_MAX_SAMPLES_PER_SEND), 2000)
+  }
 }
 
 // Send logs to Grafana Cloud
@@ -39,9 +47,18 @@ loki.source.api "logs_receiver" {
 }
 
 // Collect system metrics from Alloy itself
-prometheus.exporter.unix "system" {}
+prometheus.exporter.unix "system" {
+  disable_collectors = [
+    "arp", "bcache", "bonding", "btrfs", "conntrack", 
+    "edac", "fibrechannel", "hwmon", "infiniband", "ipvs",
+    "mdadm", "nfs", "nfsd", "nvme", "powersupplyclass",
+    "pressure", "rapl", "selinux", "tapestats", "thermal_zone",
+    "timex", "udp_queues", "xfs", "zfs"
+  ]
+}
+
 prometheus.scrape "system_metrics" {
   targets = prometheus.exporter.unix.system.targets
   forward_to = [prometheus.remote_write.grafana_cloud.receiver]
-  scrape_interval = "30s"
+  scrape_interval = coalesce(env("SCRAPE_INTERVAL"), "30s")
 }
