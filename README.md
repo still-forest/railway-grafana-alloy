@@ -7,7 +7,7 @@ This deploys Grafana Alloy to Railway with a basic Prometheus scrape configurati
 1. Add the following environment variables in Railway:
 
    ```sh
-   GRAFANA_PROMETHEUS_HOST=https://prometheus-prod-XX-XX-X.grafana.net/api/prom
+   GRAFANA_PROMETHEUS_HOST=https://prometheus-prod-XX-XX-X.grafana.net
    GRAFANA_PROMETHEUS_USERNAME=your_instance_id
    GRAFANA_PROMETHEUS_PASSWORD=your_api_key
    LOKI_HOST=https://logs-prod-XX-XX-X.grafana.net

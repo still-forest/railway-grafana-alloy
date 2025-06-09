@@ -18,7 +18,7 @@ loki.receive_http "logs_receiver" {
 // Send metrics to Grafana Cloud
 prometheus.remote_write "grafana_cloud" {
   endpoint {
-    url = env("GRAFANA_PROMETHEUS_HOST") + "api/prom/push"
+    url = env("GRAFANA_PROMETHEUS_HOST") + "/api/prom/push"
     basic_auth {
       username = env("GRAFANA_PROMETHEUS_USERNAME")
       password = env("GRAFANA_PROMETHEUS_PASSWORD")
