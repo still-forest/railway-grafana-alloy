@@ -315,9 +315,9 @@ For a typical application:
 
 When you have multiple apps:
 
-- **App 1**: Financial Planning (with Alloy)
-- **App 2**: Family Tree (logs to App 1's Alloy)
-- **App 3**: Simpsons Ipsum (logs to App 1's Alloy)
+- **App 1** (with Alloy)
+- **App 2** (logs to App 1's Alloy)
+- **App 3** (logs to App 1's Alloy)
 
 This shared approach scales cost-effectively.
 
@@ -393,3 +393,27 @@ MIT License - see LICENSE file for details
 **Made with ❤️ for Railway and Grafana Cloud**
 
 _Start monitoring your applications in minutes, not hours._
+
+---
+
+🎯 Template Structure
+Core Files:
+
+railway.json - Railway deployment configuration
+Dockerfile - Multi-stage build with Grafana Alloy
+package.json - Dependencies and scripts
+ecosystem.config.js - PM2 configuration for running app + Alloy
+alloy-config.alloy - Grafana Alloy configuration for metrics & logs
+
+Application Code:
+
+src/index.ts - Express app with example routes
+src/utils/logger.ts - File-based JSON logger
+src/utils/metrics.ts - Prometheus metrics collection
+
+Configuration:
+
+tsconfig.json - TypeScript configuration
+railway.toml - Railway-specific settings
+.gitignore - Proper exclusions
+template.json - Railway template manifest

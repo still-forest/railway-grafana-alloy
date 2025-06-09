@@ -1,0 +1,36 @@
+{
+  "name": "express-grafana-observability",
+  "version": "1.0.0",
+  "description": "Express.js app with Grafana Cloud observability (logs + metrics)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "express",
+    "typescript",
+    "grafana",
+    "observability",
+    "railway"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "prom-client": "^15.1.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.5",
+    "@types/cors": "^2.8.17",
+    "@types/compression": "^1.7.5",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+}
