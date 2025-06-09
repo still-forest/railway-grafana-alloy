@@ -53,7 +53,7 @@ prometheus.exporter.unix "system" {
     "edac", "fibrechannel", "hwmon", "infiniband", "ipvs",
     "mdadm", "nfs", "nfsd", "nvme", "powersupplyclass",
     "pressure", "rapl", "selinux", "tapestats", "thermal_zone",
-    "timex", "udp_queues", "xfs", "zfs"
+    "timex", "udp_queues", "xfs", "zfs",
   ]
 }
 
