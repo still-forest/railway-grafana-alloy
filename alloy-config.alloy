@@ -6,14 +6,14 @@ prometheus.remote_write "grafana_cloud" {
       username = env("GRAFANA_PROMETHEUS_USERNAME")
       password = env("GRAFANA_PROMETHEUS_PASSWORD")
     }
-  }
 
-  // Optional: rate limiting
-  queue_config {
-    capacity = 10000
-    max_shards = coalesce(env("GRAFANA_PROMETHEUS_MAX_SHARDS"), 50)
-    min_shards = 1
-    max_samples_per_send = coalesce(env("GRAFANA_PROMETHEUS_MAX_SAMPLES_PER_SEND"), 2000)
+    // Optional: rate limiting
+    queue_config {
+      capacity = 10000
+      max_shards = coalesce(env("GRAFANA_PROMETHEUS_MAX_SHARDS"), 50)
+      min_shards = 1
+      max_samples_per_send = coalesce(env("GRAFANA_PROMETHEUS_MAX_SAMPLES_PER_SEND"), 2000)
+    }
   }
 }
 
