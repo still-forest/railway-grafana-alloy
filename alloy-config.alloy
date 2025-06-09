@@ -1,22 +1,58 @@
 // These variables must be defined in Railway
 local "env" {
   secrets = {
-    GRAFANA_CLOUD_METRICS_URL = "${env("GRAFANA_CLOUD_METRICS_URL")}"
-    GRAFANA_CLOUD_USERNAME    = "${env("GRAFANA_CLOUD_USERNAME")}"
-    GRAFANA_CLOUD_API_KEY     = "${env("GRAFANA_CLOUD_API_KEY")}"
+    GRAFANA_PROMETHEUS_HOST     = "${env("GRAFANA_PROMETHEUS_HOST")}"
+    GRAFANA_PROMETHEUS_USERNAME = "${env("GRAFANA_PROMETHEUS_USERNAME")}"
+    GRAFANA_PROMETHEUS_PASSWORD = "${env("GRAFANA_PROMETHEUS_PASSWORD")}"
+    LOKI_HOST                   = "${env("LOKI_HOST")}"
+    LOKI_USERNAME               = "${env("LOKI_USERNAME")}"
+    LOKI_PASSWORD               = "${env("LOKI_PASSWORD")}"
   }
 }
 
-prometheus.scrape "self" {
-  targets = [{ __address__ = "localhost:9090" }]
+// HTTP server for receiving logs and metrics
+prometheus.receive_http "metrics_receiver" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port = 9090
+  }
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
-prometheus.remote_write "to_grafana_cloud" {
+loki.receive_http "logs_receiver" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port = 3100
+  }
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+// Send metrics to Grafana Cloud
+prometheus.remote_write "grafana_cloud" {
   endpoint {
-    url = local.env.secrets.GRAFANA_CLOUD_METRICS_URL
+    url = local.env.secrets.GRAFANA_PROMETHEUS_HOST + "/api/prom/push"
     basic_auth {
-      username = local.env.secrets.GRAFANA_CLOUD_USERNAME
-      password = local.env.secrets.GRAFANA_CLOUD_API_KEY
+      username = local.env.secrets.GRAFANA_PROMETHEUS_USERNAME
+      password = local.env.secrets.GGRAFANA_PROMETHEUS_PASSWORD
     }
   }
+}
+
+// Send logs to Grafana Cloud
+loki.write "grafana_cloud" {
+  endpoint {
+    url = local.env.secrets.LOKI_HOST + "/loki/api/v1/push"
+    basic_auth {
+      username = local.env.secrets.LOKI_USERNAME
+      password = local.env.secrets.LOKI_PASSWORD
+    }
+  }
+}
+
+// Optional: Collect system metrics from Alloy itself
+prometheus.exporter.unix "system" {}
+prometheus.scrape "system_metrics" {
+  targets = prometheus.exporter.unix.system.targets
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+  scrape_interval = "30s"
 }
