@@ -2,7 +2,7 @@
 
 This template sets up [Grafana Alloy](https://grafana.com/docs/alloy/) to stream **metrics** and **logs** to your **Grafana Cloud** account—perfect for real-time observability with zero hassle.
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/-pwwc8?referralCode=fPHbu5)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/railway-grafana-allo?referralCode=fPHbu5)
 
 ### 📦 What’s Included
 
