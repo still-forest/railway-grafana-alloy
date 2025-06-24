@@ -38,6 +38,8 @@ This template sets up [Grafana Alloy](https://grafana.com/docs/alloy/) to stream
 
 ### 🧪 How to Use
 
+Make sure your targets are reachable from within Railway’s network. Then:
+
 - Send metrics via Prometheus to `http://<your-app>.railway.app:9091/metrics`
 - Send logs in [Loki Push API](https://grafana.com/docs/loki/latest/api/#post-lokiapiv1push) format to `http://<your-app>.railway.app:3100/loki/api/v1/push`
 
